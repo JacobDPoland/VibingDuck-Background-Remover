@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import subprocess
 
 file_list = [
     "I_just_need_space.jpg",
@@ -9,14 +10,22 @@ file_list = [
     "whale_of_a_time.jpg",
 ]
 
+def getFileNames(dir):
+    proc = subprocess.Popen('ls ' + dir + "/*", stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    names_list = output[:-1].split(b"\n")
+    for i, name in enumerate(names_list):
+        names_list[i] = str(name, "utf-8")
+    return(names_list)  # empty output at the end
+
 # This function was made from a script found from this Stack Overflow post:
 # https://stackoverflow.com/questions/63001988/how-to-remove-background-of-images-in-python
-def clearBackground(infile_dir, filename):
+def clearBackground(filename):
     # infile_dir = '../tshirts/'
     # filename = 'I_just_need_space_tshirt.jpg'
 
     # load image
-    img = cv2.imread(infile_dir + filename)
+    img = cv2.imread(filename)
 
     # convert to graky
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -46,10 +55,12 @@ def clearBackground(infile_dir, filename):
     result[:, :, 3] = mask
 
     # save resulting masked image
-    new_file_name = filename[:-4] + '_transp_bckgrnd.png'
-    write_location = './output/' + infile_dir[3:] + "/" + new_file_name
+    new_file_name = filename[:-4] + '_transp_bckgrnd.png'  # change suffix
+    new_file_name = new_file_name[3:]
+    write_location = './output/' + new_file_name
     print("Write location: " + write_location)
-    cv2.imwrite(write_location, result)
+    if not cv2.imwrite(write_location, result):
+        print("Error writing file") 
 
     # display result, though it won't show transparency
     # cv2.imshow("INPUT", img)
@@ -60,10 +71,16 @@ def clearBackground(infile_dir, filename):
     cv2.destroyAllWindows()
 
 
-dir_list = [
-    "../tshirts/",
-    "../hoodies/"
-]
-for dir in dir_list:
-    for file in file_list:
-        clearBackground(dir, file)
+tshirt_names = getFileNames("../tshirts")
+hoodie_names = getFileNames("../hoodies")
+hat_names = getFileNames("../hats")
+
+for this_file in tshirt_names:
+    clearBackground(this_file)
+
+for this_file in hoodie_names:
+    clearBackground(this_file)
+
+for this_file in hat_names:
+    clearBackground(this_file)
+
